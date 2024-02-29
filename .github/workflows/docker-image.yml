@@ -17,4 +17,4 @@ jobs:
     - name: build flask container
       run: docker build . --file Dockerfile --tag flasktesting:$(date +%s)
     - name: build nginx container
-      run: docker build ./nginx --file Dockerfile --tag nginxtesting:$(date +%s)
+      run: docker build ./nginx --file nginx/Dockerfile --tag nginxtesting:$(date +%s)
