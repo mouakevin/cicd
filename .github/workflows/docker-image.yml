@@ -21,35 +21,29 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: arn:aws:iam::730335382802:role/github-testing-cicd
-          role-session-name: GithubActions
           aws-region: us-west-1
+          role-session-name: GithubActions
 
       - name: Login to Amazon ECR
         run: |
           aws ecr get-login-password --region us-west-1 | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-west-1.amazonaws.com
 
       - name: Build Flask container
-        run: |
-          IMAGE_TAG=$(date +%s)
-          docker build . --file Dockerfile --tag git22/flask-app:$IMAGE_TAG
+        run: docker build . --file Dockerfile --tag flask-app:latest
 
       - name: Build Nginx container
-        run: |
-          IMAGE_TAG=$(date +%s)
-          docker build ./nginx --file nginx/Dockerfile --tag git22/nginx-app:$IMAGE_TAG
+        run: docker build ./nginx --file nginx/Dockerfile --tag nginx-app:latest
 
       - name: Tag and push Flask image to Amazon ECR
         run: |
           ECR_REGISTRY=$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-west-1.amazonaws.com
-          IMAGE_TAG=$(date +%s)
-          docker tag git22/flask-app:$IMAGE_TAG $ECR_REGISTRY/git22/flask-app:$IMAGE_TAG
-          docker push $ECR_REGISTRY/git22/flask-app:$IMAGE_TAG
+          docker tag flask-app:latest $ECR_REGISTRY/git22/flask-app:latest
+          docker push $ECR_REGISTRY/git22/flask-app:latest
 
       - name: Tag and push Nginx image to Amazon ECR
         run: |
           ECR_REGISTRY=$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-west-1.amazonaws.com
-          IMAGE_TAG=$(date +%s)
-          docker tag git22/nginx-app:$IMAGE_TAG $ECR_REGISTRY/git22/nginx-app:$IMAGE_TAG
-          docker push $ECR_REGISTRY/git22/nginx-app:$IMAGE_TAG
+          docker tag nginx-app:latest $ECR_REGISTRY/git22/nginx-app:latest
+          docker push $ECR_REGISTRY/git22/nginx-app:latest
 
 
