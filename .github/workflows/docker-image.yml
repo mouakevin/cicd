@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Check out the code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -29,21 +29,26 @@ jobs:
           aws ecr get-login-password --region us-west-1 | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-west-1.amazonaws.com
 
       - name: Build Flask container
-        run: docker build . --file Dockerfile --tag flask-app:latest
-
-      - name: Build Nginx container
-        run: docker build ./nginx --file nginx/Dockerfile --tag nginx-app:latest
+        run: |
+          IMAGE_TAG=flasktesting:$(date +%s)
+          docker build . --file Dockerfile --tag $IMAGE_TAG
 
       - name: Tag and push Flask image to Amazon ECR
         run: |
-          ECR_REGISTRY=$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-west-1.amazonaws.com
-          docker tag flask-app:latest $ECR_REGISTRY/git22/flask-app:latest
-          docker push $ECR_REGISTRY/git22/flask-app:latest
+          ECR_REGISTRY=$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-west-1.amazonaws.com/git22
+          docker tag $IMAGE_TAG $ECR_REGISTRY/$IMAGE_TAG
+          docker push $ECR_REGISTRY/$IMAGE_TAG
+
+      - name: Build Nginx container
+        run: |
+          IMAGE_TAG=nginxtesting:$(date +%s)
+          docker build ./nginx --file nginx/Dockerfile --tag $IMAGE_TAG
 
       - name: Tag and push Nginx image to Amazon ECR
         run: |
-          ECR_REGISTRY=$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-west-1.amazonaws.com
-          docker tag nginx-app:latest $ECR_REGISTRY/git22/nginx-app:latest
-          docker push $ECR_REGISTRY/git22/nginx-app:latest
+          ECR_REGISTRY=$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.us-west-1.amazonaws.com/git22
+          docker tag $IMAGE_TAG $ECR_REGISTRY/$IMAGE_TAG
+          docker push $ECR_REGISTRY/$IMAGE_TAG
+
 
 
